@@ -10,12 +10,12 @@
 */
 int main(void)
 {
-    int digit; // Declare variable at the beginning of the block
+    int digit; 
 
     for (digit = 0; digit <= 9; digit++)
     {
-        putchar(digit + '0'); // Print the digit as a character
-        putchar('\n');        // Print a newline character
+        putchar(digit + '0'); 
+        putchar('\n');        
     }
 
     return (0);
