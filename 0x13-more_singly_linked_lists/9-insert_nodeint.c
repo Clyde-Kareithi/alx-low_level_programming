@@ -10,7 +10,7 @@
  */
 listint_t *insert_nodeint_at_index(listint_t **head, unsigned int idx, int n)
 {
-listint_t *new_node, *current;
+	listint_t *new_node, *current;
 	unsigned int i = 0;
 
 	if (head == NULL)
@@ -21,21 +21,21 @@ listint_t *new_node, *current;
 
 	new_node = malloc(sizeof(listint_t));
 	if (new_node == NULL)
-	return (NULL);
+	return (NULL);  /* Allocation failed */
 
 	new_node->n = n;
 	current = *head;
 
 	while (current != NULL && i < idx - 1)
 	{
-		current = current->next;
-		i++;
+	current = current->next;
+	i++;
 	}
 
 	if (current == NULL)
 	{
-		free(new_node);
-	return (NULL);
+	free(new_node);
+	return (NULL);  /* Index out of range, insertion failed */
 	}
 
 	new_node->next = current->next;
