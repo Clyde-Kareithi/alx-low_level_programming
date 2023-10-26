@@ -7,10 +7,10 @@
  */
 int get_endianness(void)
 {
-    unsigned int num = 1;
-    char *endian = (char *)&num;
+	unsigned int num = 1;
+	char *endian = (char *)&num;
 
     /* If the first byte (lowest address) contains 1, it's little endian. */
-    return (endian[0] == 1);
+	return (endian[0] == 1);
 }
 
