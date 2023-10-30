@@ -1,76 +1,72 @@
 #include "main.h"
 #include <stdio.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdlib.h>
-
-void error_handler(int code, char *file);
-void copy_file(const char *file_from, const char *file_to);
 
 /**
- * main - Entry point.
- * @argc: Argument count.
- * @argv: Argument vector.
- * Return: 0 on success, or exit with appropriate error codes.
+ * error_file - checks if files can be opened.
+ * @file_from: file_from.
+ * @file_to: file_to.
+ * @argv: arguments vector.
+ * Return: no return.
+ */
+void error_file(int file_from, int file_to, char *argv[])
+{
+	if (file_from == -1)
+	{
+		dprintf(STDERR_FILENO, "Error: Can't read from file %s\n", argv[1]);
+		exit(98);
+	}
+	if (file_to == -1)
+	{
+		dprintf(STDERR_FILENO, "Error: Can't write to %s\n", argv[2]);
+		exit(99);
+	}
+}
+
+/**
+ * main - check the code for Holberton School students.
+ * @argc: number of arguments.
+ * @argv: arguments vector.
+ * Return: Always 0.
  */
 int main(int argc, char *argv[])
 {
+	int file_from, file_to, err_close;
+	ssize_t nchars, nwr;
+	char buf[1024];
+
 	if (argc != 3)
-		{
-		dprintf(STDERR_FILENO, "Usage: cp file_from file_to\n");
-		exit(97);
-		}
-
-	copy_file(argv[1], argv[2]);
-	return (0);
-}
-
-/**
- * copy_file - Copies the content of file_from to file_to.
- * @file_from: Source file.
- * @file_to: Destination file.
- */
-void copy_file(const char *file_from, const char *file_to)
-{
-	int fd_from, fd_to;
-	ssize_t n_read, n_write;
-	char buffer[1024];
-
-	fd_from = open(file_from, O_RDONLY);
-	if (fd_from == -1)
-		error_handler(98, file_from);
-
-	fd_to = open(file_to, O_WRONLY | O_CREAT | O_TRUNC, 0664);
-	if (fd_to == -1)
-		error_handler(99, file_to);
-
-	while ((n_read = read(fd_from, buffer, 1024)) > 0)
 	{
-	n_write = write(fd_to, buffer, n_read);
-	if (n_write == -1)
-		error_handler(99, file_to);
+		dprintf(STDERR_FILENO, "%s\n", "Usage: cp file_from file_to");
+		exit(97);
 	}
 
-	if (n_read == -1)
-	error_handler(98, file_from);
+	file_from = open(argv[1], O_RDONLY);
+	file_to = open(argv[2], O_CREAT | O_WRONLY | O_TRUNC | O_APPEND, 0664);
+	error_file(file_from, file_to, argv);
 
-	if (close(fd_from) == -1 || close(fd_to) == -1)
-	error_handler(100, NULL);
+	nchars = 1024;
+	while (nchars == 1024)
+	{
+		nchars = read(file_from, buf, 1024);
+		if (nchars == -1)
+			error_file(-1, 0, argv);
+		nwr = write(file_to, buf, nchars);
+		if (nwr == -1)
+			error_file(0, -1, argv);
+	}
+
+	err_close = close(file_from);
+	if (err_close == -1)
+	{
+		dprintf(STDERR_FILENO, "Error: Can't close fd %d\n", file_from);
+		exit(100);
+	}
+
+	err_close = close(file_to);
+	if (err_close == -1)
+	{
+		dprintf(STDERR_FILENO, "Error: Can't close fd %d\n", file_from);
+		exit(100);
+	}
+	return (0);
 }
-
-/**
- * error_handler - Exits with the appropriate error message and code.
- * @code: The error code.
- * @file: The name of the file associated with the error.
- */
-void error_handler(int code, char *file)
-{
-	if (code == 98)
-	dprintf(STDERR_FILENO, "Error: Can't read from file %s\n", file);
-	else if (code == 99)
-	dprintf(STDERR_FILENO, "Error: Can't write to %s\n", file);
-	else if (code == 100)
-	dprintf(STDERR_FILENO, "Error: Can't close file\n");
-	exit(code);
-}
-
