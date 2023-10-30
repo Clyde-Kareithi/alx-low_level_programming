@@ -6,6 +6,8 @@
 
 #define BUFSIZE 1024
 
+int copy_file_contents(int fd_from, int fd_to, char *buffer);
+
 /**
  * main - Copy content from file_from to file_to.
  * @argc: Argument count.
@@ -14,56 +16,59 @@
  */
 int main(int argc, char *argv[])
 {
+	int fd_from, fd_to;
+	ssize_t n_read, n_write;
+	char buffer[BUFSIZE];
+
 	if (argc != 3)
-	{
+		{
 		dprintf(2, "Usage: cp file_from file_to\n");
 		exit(97);
-	}
+		}
 
-	if (copy_file(argv[1], argv[2]) != 0)
-	{
-	exit(98);
-	}
+	fd_from = open(argv[1], O_RDONLY);
+	if (fd_from == -1)
+		{
+		dprintf(2, "Error: Can't read from file %s\n", argv[1]);
+		exit(98);
+		}
+
+	fd_to = open(argv[2], O_WRONLY | O_CREAT | O_TRUNC, 0664);
+	if (fd_to == -1)
+		{
+		dprintf(2, "Error: Can't write to %s\n", argv[2]);
+		exit(99);
+		}
+
+	if (copy_file_contents(fd_from, fd_to, buffer) == -1)
+	exit(99);
+
+	if (close(fd_from) == -1 || close(fd_to) == -1)
+		{
+		dprintf(2, "Error: Can't close file descriptors\n");
+		exit(100);
+		}
 
 	return (0);
 }
 
 /**
- * copy_file - Copy the content from file_from to file_to.
- * @from: Source file.
- * @to: Destination file.
+ * copy_file_contents - Copy contents from one file descriptor to another.
+ * @fd_from: Source file descriptor.
+ * @fd_to: Destination file descriptor.
+ * @buffer: Temporary buffer for copying.
  * Return: 0 on success, -1 on failure.
  */
-int copy_file(const char *from, const char *to)
+int copy_file_contents(int fd_from, int fd_to, char *buffer)
 {
-	int fd_from, fd_to;
 	ssize_t n_read, n_write;
-	char buffer[BUFSIZE];
 
-	fd_from = open(from, O_RDONLY);
-	if (fd_from == -1)
-	return (-1);
-
-	fd_to = open(to, O_WRONLY | O_CREAT | O_TRUNC, 0664);
-	if (fd_to == -1)
-	{
-		close(fd_from);
-		return (-1);
-	}
-
-	while ((n_read = read(fd_from, buffer, BUFSIZE)) > 0)
+	while ((n_read = read(fd_from, buffer, BUFSIZE) > 0))
 	{
 		n_write = write(fd_to, buffer, n_read);
-		if (n_write == -1)
-		{
-			close(fd_from);
-			close(fd_to);
-		return (-1);
-		}
-	}
-
-	close(fd_from);
-	close(fd_to);
+	if (n_write == -1)
+	return (-1);
+}
 
 	if (n_read == -1)
 	return (-1);
